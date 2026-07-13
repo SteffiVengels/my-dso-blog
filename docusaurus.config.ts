@@ -6,7 +6,8 @@ import {config as dotenvconfig}  from "dotenv";
 dotenvconfig();
 
 /* TODO: change to read configuration from environment */
-const blogEnabled = Boolean(process.env.BLOG_ENABLED === 'true')
+const blogEnabled = Boolean(process.env.BLOG_ENABLED === 'true');
+const gitRepositoryUrl = process.env.GIT_REPOSITORY_URL;
 
 const config: Config = {
   title: 'Steffis DevSecOps Learning Journal',
@@ -46,7 +47,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/spmse/dev-blog-template',
+            gitRepositoryUrl,
         },
         blog: blogEnabled ? 
           {
@@ -58,7 +59,7 @@ const config: Config = {
             // Please change this to your repo.
             // Remove this to remove the "edit this page" links.
             editUrl:
-              'https://github.com/spmse/dev-blog-template',
+              gitRepositoryUrl,
             // Useful options to enforce blogging best practices
             onInlineTags: 'warn',
             onInlineAuthors: 'warn',
