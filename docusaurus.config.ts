@@ -1,7 +1,7 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import {config as dotenvconfig}  from "dotenv";
+import { config as dotenvconfig } from "dotenv";
 
 dotenvconfig();
 
@@ -49,7 +49,7 @@ const config: Config = {
           editUrl:
             gitRepositoryUrl,
         },
-        blog: blogEnabled ? 
+        blog: blogEnabled ?
           {
             showReadingTime: true,
             feedOptions: {
@@ -77,7 +77,7 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: 'My Site',
+      title: 'Steffis DevSecOps Learning Journal',
       logo: {
         alt: 'My Site Logo',
         src: 'img/logo.svg',
@@ -90,7 +90,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/spmse/dev-blog-template',
+          href: 'https://github.com/SteffiVengels/my-dso-blog',
           label: 'Github',
           position: 'right',
         },
@@ -100,11 +100,11 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Projects',
           items: [
             {
-              label: 'Tutorial',
-              to: '/docs/guides/intro',
+              label: 'Projects',
+              to: '/docs/projects/overview',
             },
           ],
         },
@@ -130,12 +130,16 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/SteffiVengels/my-dso-blog',
+            },
+            {
+              label: 'Template',
+              href: 'https://github.com/Developer-Akademie-DevSecOpsKurs/dev-blog-template',
             }
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Sven Patrick Meier (spmse). Built with Docusaurus and 💚.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Stefanie Vengels. Built with Docusaurus and 💚. Extended from the developer-akademie-starter.`,
     },
     prism: {
       theme: prismThemes.github,
@@ -146,7 +150,7 @@ const config: Config = {
         {
           className: 'theme-code-block-highlighted-line',
           line: 'highlight-next-line',
-          block: {start: 'highlight-start', end: 'highlight-end'},
+          block: { start: 'highlight-start', end: 'highlight-end' },
         },
         {
           className: 'code-block-error-line',
@@ -159,7 +163,7 @@ const config: Config = {
 
 
 if (blogEnabled) {
-  (config.themeConfig.navbar as any).items.push({to: '/blog', label: 'Blog', position: 'left'});
+  (config.themeConfig.navbar as any).items.push({ to: '/blog', label: 'Blog', position: 'left' });
   (
     config.themeConfig.footer as any
   ).links[2].items.push({
