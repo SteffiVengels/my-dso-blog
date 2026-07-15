@@ -1,202 +1,269 @@
 # Your first Cloud-VM
 
-In this README file you will find information on how to handle your first Cloud-VM. Apart from information related to the first-time login, this document also provides reading links for other interesting topics around Linux server environments or server administration.
+This guide walks you through setting up your first cloud VM (V-Server) step by step. You will log in to the server, secure it with an SSH key, install a web server, and connect the server to GitHub. Every command is explained, so you can follow along even if this is your first time working with a Linux server.
 
 ## Table of Contents
 
-- [Create an SSH-Key pair](#create-an-ssh-key-pair)
+- [Prerequisites](#prerequisites)
 - [First-Time Login](#first-time-login)
+- [Create an SSH-Key pair](#create-an-ssh-key-pair)
 - [Add the public key to the VM](#add-the-public-key-to-the-vm)
-  - [Note for Windows users](#note-for-windows-users)
+  - [Verify that the correct key was added](#verify-that-the-correct-key-was-added)
   - [Disable Password-Logins](#disable-password-logins)
-- [How to configure and start a webserver](#how-to-configure-and-start-a-webserver)
+- [Install and start a web server](#install-and-start-a-web-server)
   - [Configuring an alternative start page](#configuring-an-alternative-start-page)
-- [Alternatives to logging in to my Cloud VM](#alternatives-to-logging-in-to-my-cloud-vm)
-  - [1. Shell Alias (Linux/macOS only)](#1-shell-alias-linuxmacos-only)
-  - [2. SSH Client Config](#2-ssh-client-config)
+- [Connect the server to GitHub](#connect-the-server-to-github)
+- [Simplify the login with an SSH client config](#simplify-the-login-with-an-ssh-client-config)
 
-## Create an SSH-Key pair
-
-In order to create an SSH-Key pair on your local machine, you can run the following command and follow the instructions in your terminal:
-
-```bash
-# create an ED25519 key pair
-# modern alternative to RSA keys
-$ ssh-keygen -t ed25519
-```
+## Prerequisites
+ 
+Before you start, you need:
+ 
+- the IP address of your server (in this guide: `123.4.5.678` as a placeholder — replace it with your own),
+- a username and password for the server,
 
 ## First-Time Login
 
-When logging in to any application, we usually use username/password combinations. For this example we use a username/password combination for the first login only - for production-server environments, we want to use something safer than just a password alongside the username, we want to use a personalized key that allows us to connect to a remote shell on the server - this is the so-called `Secure Shell Protocol (SSH)` and the personalized key is called SSH-Key.
+For the very first login, you use the username and password you received. Open PowerShell and run:
 
 ```bash
-$ ssh root@203.0.113.10
-password:
+ssh your_username@123.4.5.678
 ```
+ 
+> [!NOTE]
+> This command is just an example of how a login looks. Replace `your_username` and the IP address with your own values. After running the command, you will be asked for your password. While typing the password, nothing appears on screen — this is normal, just type it and press Enter.
+
+You are now logged in to your server. Type `exit` to return to your local machine.
+ 
+> [!IMPORTANT]
+> A password alone is not secure enough for a production server. In the next steps you will create an SSH key and use it instead of the password.
+
+## Create an SSH-Key pair
+
+An SSH key pair consists of two files: a **private key** (stays on your machine, never share it) and a **public key** (gets copied to the server). During login, the two keys are matched — no password needed.
+ 
+```bash
+ssh-keygen -t ed25519
+```
+ 
+`ssh-keygen` creates the key pair. The option `-t ed25519` selects the ED25519 algorithm, a modern alternative to RSA keys. Press Enter to accept the default file location (`C:\Users\<your_name>\.ssh\`). You can optionally set a passphrase to protect the key.
+ 
+You now have two files in your `.ssh` folder:
+ 
+- `id_ed25519` — your private key
+- `id_ed25519.pub` — your public key
 
 ## Add the public key to the VM
 
-```bash
-# ssh-copy-id -i <path/to/your/key>.pub <user>@<hostname>
-$ ssh-copy-id -i $HOME/.ssh/id_ed25519.pub example@203.0.113.10
-
-/usr/local/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/Users/example/.ssh/id_ed25519.pub"
-/usr/local/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
-/usr/local/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
-example@203.0.113.10 password:
-
-Number of key(s) added: 1
-
-Now try logging into the machine with:     "ssh 'example@203.0.113.10' "
-and check to make sure that only the key(s) you wanted were added.
-```
-
-### Note for Windows users
-
-`ssh-copy-id` is not available on Windows. In PowerShell you can achieve the same result with:
-
+Now copy the **public** key to the server, so the server knows it belongs to you. On Windows, run this in PowerShell:
+ 
 ```powershell
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh example@203.0.113.10 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh your_username@203.0.113.10 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
+ 
+What this command does: it reads your public key file (`type`) and sends it to the server via SSH, where it is appended to the file `~/.ssh/authorized_keys`. This file contains all public keys that are allowed to log in. You will be asked for your password one last time.
+ 
+Now test the key login:
+ 
+```bash
+ssh your_username@123.4.5.678
+```
+ 
+If everything worked, you are logged in **without** being asked for the server password (only the key passphrase, if you set one).
+
+### Verify that the correct key was added
+ 
+To check that exactly your key was added, compare the key on the server with your local public key.
+ 
+On the server, show the authorized keys:
+ 
+```bash
+cat ~/.ssh/authorized_keys
+```
+ 
+On your local machine, show your public key:
+ 
+```powershell
+type $env:USERPROFILE\.ssh\id_ed25519.pub
+```
+ 
+The two outputs must match. Each key is one long line starting with `ssh-ed25519` and ending with a comment (usually `your_name@your_computer`), which helps you identify whose key it is.
 
 ### Disable Password-Logins
 
 In this section information about disabling password-based logins will be provided.
 Passwords are a potential security risk, which is why password logins should be disabled in favor of authenticating via SSH-Keys.
 
-**Important:** Make sure that logging in with your SSH-Key works before disabling password logins - otherwise you may lock yourself out of the server.
+> [!WARNING]
+> Make sure the SSH key login works **before** disabling password logins — otherwise you may lock yourself out of the server.
 
-1. Adjust the configuration under `/etc/ssh/sshd_config`
-1. Find and edit the line `#PasswordAuthentication yes` so that it reads `PasswordAuthentication no`.
-1. Save the file and exit
-1. Restart the `sshd` service to reload the config changes
+1. On the server, open the SSH configuration file and restart the SSH service afterwards (the second command runs automatically once you close the editor):
 
+   ```bash
+   sudo nano /etc/ssh/sshd_config && sudo systemctl restart ssh.service
+   ```
+
+1. Find and edit the line `#PasswordAuthentication yes` so that it reads 
+
+    ```
+   PasswordAuthentication no
+    ```
+
+1. Save and exit (`Ctrl+O`, Enter, `Ctrl+X`). The SSH service now restarts and loads the new configuration.
+
+To verify, try logging in with password authentication forced:
+ 
 ```bash
-$ sudo nano /etc/ssh/sshd_config
-$ sudo systemctl restart ssh.service
+ssh -o PubkeyAuthentication=no your_username@123.4.5.678
 ```
 
-## How to configure and start a webserver
+## Install and start a web server
 
 In this section, you will learn about running an `nginx` webserver on an Ubuntu cloud VM. After installing the webserver, you should be able to see the nginx server in your browser.
 
-```bash
-$ sudo apt update
-$ sudo apt install nginx -y
-```
+1. `apt update` refreshes the list of available software packages, so the newest version is installed.
+
+   ```bash
+    $ sudo apt update
+    ```
+
+1. `apt install nginx -y` installs nginx. The `-y` flag automatically confirms the installation, so you are not asked "Do you want to continue?".
+
+   ```bash
+    $ sudo apt install nginx -y
+    ```
+
+   nginx starts automatically after the installation. To test it, open your browser and go to:
+ 
+    ```
+    http://123.4.5.678
+    ```
+ 
+    You should see the default nginx welcome page ("Welcome to nginx!"). This confirms the web server is installed and running.
 
 ### Configuring an alternative start page
 
-After installing and testing our webserver, we now want to configure it to render an alternative `index.html` instead of the default `nginx` start page.
+You should see the default nginx welcome page ("Welcome to nginx!"). This confirms the web server is installed and running.
 
 Follow these steps to reconfigure the nginx installation on your cloud VM:
 
-1. create a new file `alternate-index.html` in the location `/var/www/alternatives/`
-   - Ensure this directory exists by running `ls /var/www`
-   - Create the directory if it does not yet exist with: `sudo mkdir /var/www/alternatives/`
-1. add a configuration for the enabled sites for nginx under `/etc/nginx/sites-enabled/`, named `alternatives`
-   - run `sudo nano /etc/nginx/sites-enabled/alternatives`
-   - add the config from below<sup>1</sup>
-1. Validate the configuration and restart the `nginx` service:
-   - `sudo nginx -t`
-   - `sudo systemctl restart nginx`
-   - Open your browser with `http://<server-ip>:8081`<sup>2</sup> to see your configured alternative start page for the nginx webserver.
+1. Create the HTML file `alternate-index.html` in that directory:
+   ```bash
+   sudo nano /var/www/alternatives/alternate-index.html
+   ```
+ 
+   You can use this snippet as content:
+ 
+   ```html
+   <!doctype html>
+   <html>
+   <head>
+       <meta charset="utf-8">
+       <title>Hello, Nginx!</title>
+   </head>
+   <body>
+       <h1>Hello, Nginx!</h1>
+       <p>I have just configured our Nginx web server on Ubuntu Server!</p>
+   </body>
+   </html>
+   ```
 
-<sup>1</sup>nginx alternatives configuration file:
+1. Create a new nginx configuration named `alternatives`:
+   ```bash
+   sudo nano /etc/nginx/sites-enabled/alternatives
+   ```
+ 
+   Add the following configuration. It tells nginx to listen on port `8081` and serve `alternate-index.html` from `/var/www/alternatives`:
+ 
+   ```nginx
+   server {
+       listen 8081;
+       listen [::]:8081;
+ 
+       root /var/www/alternatives;
+       index alternate-index.html;
+ 
+       location / {
+           try_files $uri $uri/ =404;
+       }
+   }
+   ```
 
-```nginx
-server {
-    listen 8081;
-    listen [::]:8081;
+1. Validate the configuration and restart nginx:
+   ```bash
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+ 
+   `sudo nginx -t` tests the configuration for errors before applying it. If the test passes, the restart loads the new configuration.
+ 
+1. Open your browser and go to:
+   ```
+   http://123.4.5.678:8081
+   ```
+ 
+   You should now see your own start page.
+ 
+> [!IMPORTANT]
+> Note that port Enter the IP address **together with the port number** in your browser, otherwise you will see the default nginx page instead of your own.
 
-    root /var/www/alternatives;
-    index alternate-index.html;
+## Connect the server to GitHub
 
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-```
+To clone and push Git repositories directly from your server, connect it to your GitHub account with a separate SSH key.
+ 
+1. Install Git on the server and set your name and email. Use exactly the name and email of your GitHub account:
 
-<sup>2</sup>Note that the port differs from the HTTP standard port 80. Ensure you enter the ip address/domain information together with the port number, otherwise you may experience undesired behaviour.
+   ```bash
+   sudo apt install git -y
+   git config --global user.name "<YOUR_GITHUB_NAME>"
+   git config --global user.email "<YOUR_GITHUB_EMAIL>"
+   ```
+ 
+2. Create a second SSH key pair — this time **on the server** — and display the public key:
 
-For the HTML you can use the following snippet:
+   ```bash
+   ssh-keygen -t ed25519
+   cat ~/.ssh/id_ed25519.pub
+   ```
+ 
+   > [!NOTE]
+   > This is a separate key pair from the one on your computer. The first key lets *you* log in to the server; this new key lets *the server* authenticate with GitHub.
+ 
+3. Copy the output. Then go to GitHub → **Settings** → **SSH and GPG keys** → **New SSH key**, paste the key and save.
 
-```html
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Hello, Nginx!</title>
-</head>
-<body>
-    <h1>Hello, Nginx!</h1>
-    <p>I have just configured our Nginx web server on Ubuntu Server!</p>
-</body>
-</html>
-```
+4. Test the connection from the server:
 
-## Alternatives to logging in to my Cloud VM
+   ```bash
+   ssh -T git@github.com
+   ```
+ 
+   Expected response: `Hi <name>! You've successfully authenticated...`
+ 
+The server can now clone repositories via SSH, for example `git clone git@github.com:<YOUR_GITHUB_NAME>/<REPO>.git`.
 
-### 1. Shell Alias (Linux/macOS only)
-
-An alias works like a shortcut for a long command such as
-`ssh -i ~/.ssh/id_ed25519 sysops@203.0.113.10`.
-
-Always use an absolute path for the key file, never a relative one.
-
-```bash
-$ alias myserver="ssh -i /Users/example/.ssh/id_ed25519 your_username@203.0.113.10"
-```
-
-Note: An alias only lasts for the current shell session. To make it
-permanent, add the line to your `~/.bashrc`, e.g. by opening the file
-in an editor:
-
-```bash
-$ code ~/.bashrc      # open in VS Code
-```
-
-Then reload the config so the alias is available immediately:
-
-```bash
-$ source ~/.bashrc
-```
-
-After that, the alias works in every new terminal session.
-
-### 2. SSH Client Config
-
-The SSH client config works on Linux, macOS, and Windows. It lets you define a short name for the server so you can connect with `ssh myserver` instead of the full command.
-
-On Linux/macOS, check whether a config file already exists:
-
-```bash
-$ ls ~/.ssh
-$ cat ~/.ssh/config   # view contents
-$ vim ~/.ssh/config   # edit (create the file if it does not exist)
-```
-
-On Windows (PowerShell), the file is located at `%USERPROFILE%\.ssh\config`:
-
+## Simplify the login with an SSH client config
+ 
+Instead of typing the full login command every time, you can define a short name for your server in the SSH client config. Afterwards, `ssh myserver` is enough to connect.
+ 
 ```powershell
-$ code $env:USERPROFILE\.ssh\config   # open in VS Code (creates the file if it does not exist)
+$ code $env:USERPROFILE\.ssh\config
 ```
-
-Note: the file has no extension - do not save it as `config.txt`.
-
-Add an entry (use your key path, e.g. `C:\Users\example\.ssh\id_ed25519` on Windows):
-
+ 
+Add the following entry, using your own username and the path to your private key:
+ 
 ```
 Host myserver
-    HostName 203.0.113.10
+    HostName 123.4.5.678
     User your_username
     PreferredAuthentications publickey
-    IdentityFile /Users/example/.ssh/id_ed25519
+    IdentityFile C:\Users\<your_name>\.ssh\id_ed25519
 ```
 
-No restart is required - the file is read on every `ssh` call. Afterwards you can connect with just:
-
+> [!CAUTION]
+> The file must be saved **without a file extension** — its name is just `config`, not `config.txt`. Notepad may add `.txt` automatically; to prevent this, select "All files" as the file type when saving.
+ 
+You can choose any name instead of `myserver` — just avoid spaces. No restart is required, the file is read on every `ssh` call. From now on, connect with:
+ 
 ```bash
-$ ssh myserver
+ssh myserver
 ```
