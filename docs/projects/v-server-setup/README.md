@@ -226,7 +226,6 @@ To clone and push Git repositories directly from your server, connect it to your
    cat ~/.ssh/id_ed25519.pub
    ```
  
-   > [!NOTE]
    > This is a separate key pair from the one on your computer. The first key lets *you* log in to the server; this new key lets *the server* authenticate with GitHub.
  
 3. Copy the output. Then go to GitHub → **Settings** → **SSH and GPG keys** → **New SSH key**, paste the key and save.
