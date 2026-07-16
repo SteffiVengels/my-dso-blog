@@ -19,7 +19,7 @@ This guide walks you through setting up your first cloud VM (V-Server) step by s
  
 Before you start, you need:
  
-- the IP address of your server
+- the IP address of your server (in this guide: `123.4.5.678` as a placeholder — replace it with your own),
 - a username and password for the server,
 
 ## First-Time Login
@@ -27,11 +27,11 @@ Before you start, you need:
 For the very first login, you use the username and password you received. Open PowerShell and run:
 
 ```bash
-ssh <YOUR_USERNAME>@<YOUR_IP_ADRESS>
+ssh your_username@123.4.5.678
 ```
  
 > [!NOTE]
-> This command is just an example of how a login looks. Replace `your_username` and `your_ip_adress` with your own values. After running the command, you will be asked for your password. While typing the password, nothing appears on screen — this is normal, just type it and press Enter.
+> This command is just an example of how a login looks. Replace `your_username` and the IP address with your own values. After running the command, you will be asked for your password. While typing the password, nothing appears on screen — this is normal, just type it and press Enter.
 
 You are now logged in to your server. Type `exit` to return to your local machine.
  
@@ -46,7 +46,7 @@ An SSH key pair consists of two files: a **private key** (stays on your machine,
 ssh-keygen -t ed25519
 ```
  
-`ssh-keygen` creates the key pair. The option `-t ed25519` selects the ED25519 algorithm, a modern alternative to RSA keys. Press Enter to accept the default file location (`C:\Users\<YOUR_USER>\.ssh\`). You can optionally set a passphrase to protect the key.
+`ssh-keygen` creates the key pair. The option `-t ed25519` selects the ED25519 algorithm, a modern alternative to RSA keys. Press Enter to accept the default file location (`C:\Users\<your_name>\.ssh\`). You can optionally set a passphrase to protect the key.
  
 You now have two files in your `.ssh` folder:
  
@@ -58,7 +58,7 @@ You now have two files in your `.ssh` folder:
 Now copy the **public** key to the server, so the server knows it belongs to you. On Windows, run this in PowerShell:
  
 ```powershell
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <YOUR_USERNAME>@<YOUR_IP_ADRESS> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh your_username@203.0.113.10 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
  
 What this command does: it reads your public key file (`type`) and sends it to the server via SSH, where it is appended to the file `~/.ssh/authorized_keys`. This file contains all public keys that are allowed to log in. You will be asked for your password one last time.
@@ -66,7 +66,7 @@ What this command does: it reads your public key file (`type`) and sends it to t
 Now test the key login:
  
 ```bash
-ssh <YOUR_USERNAME>@<YOUR_IP_ADRESS>
+ssh your_username@123.4.5.678
 ```
  
 If everything worked, you are logged in **without** being asked for the server password (only the key passphrase, if you set one).
@@ -114,7 +114,7 @@ Passwords are a potential security risk, which is why password logins should be 
 To verify, try logging in with password authentication forced:
  
 ```bash
-ssh -o PubkeyAuthentication=no <YOUR_USERNAME>@<YOUR_IP_ADRESS>
+ssh -o PubkeyAuthentication=no your_username@123.4.5.678
 ```
 
 ## Install and start a web server
@@ -136,7 +136,7 @@ In this section, you will learn about running an `nginx` webserver on an Ubuntu 
    nginx starts automatically after the installation. To test it, open your browser and go to:
  
     ```
-    http://<YOUR_IP_ADRESS>
+    http://123.4.5.678
     ```
  
     You should see the default nginx welcome page ("Welcome to nginx!"). This confirms the web server is installed and running.
@@ -199,7 +199,7 @@ Follow these steps to reconfigure the nginx installation on your cloud VM:
  
 1. Open your browser and go to:
    ```
-   http://<YOUR_IP_ADRESS>:8081
+   http://123.4.5.678:8081
    ```
  
    You should now see your own start page.
@@ -226,8 +226,8 @@ To clone and push Git repositories directly from your server, connect it to your
    cat ~/.ssh/id_ed25519.pub
    ```
  
-> [!NOTE]
-> This is a separate key pair from the one on your computer. The first key lets *you* log in to the server; this new key lets *the server* authenticate with GitHub.
+   > [!NOTE]
+   > This is a separate key pair from the one on your computer. The first key lets *you* log in to the server; this new key lets *the server* authenticate with GitHub.
  
 3. Copy the output. Then go to GitHub → **Settings** → **SSH and GPG keys** → **New SSH key**, paste the key and save.
 
@@ -253,10 +253,10 @@ Add the following entry, using your own username and the path to your private ke
  
 ```
 Host myserver
-    HostName <YOUR_IP_ADRESS>
-    User <YOUR_USERNAME>
+    HostName 123.4.5.678
+    User your_username
     PreferredAuthentications publickey
-    IdentityFile C:\Users\<YOUR_USER>\.ssh\id_ed25519
+    IdentityFile C:\Users\<your_name>\.ssh\id_ed25519
 ```
 
 > [!CAUTION]
